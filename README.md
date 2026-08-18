@@ -1,6 +1,6 @@
 # Kinetic Atlas
 
-Kinetic Atlas is a desktop-first interactive 3D biomechanics sandbox. Pose a stylized anatomical mannequin through draggable hand and foot targets, add independent dumbbell loads, capture start/end poses, animate or scrub a rep, and inspect continuously recalculated muscle activity.
+Kinetic Atlas is a desktop-first interactive 3D biomechanics sandbox. Pose a segmented anatomical atlas through draggable hand and foot targets, add independent dumbbell loads, capture start/end poses, animate or scrub a rep, and inspect continuously recalculated muscle activity.
 
 ## Run locally
 
@@ -13,21 +13,16 @@ Production verification: `npm run build`. The app uses client-side state only an
 
 ## Anatomy source and licensing
 
-No third-party anatomical model or texture is bundled. The mannequin, muscle volumes, dumbbells, and IK rig are original procedural geometry built at runtime from Three.js primitives in `components/AnatomyViewer.tsx`. Project code is provided under the MIT license (see `LICENSE`). This avoids unclear licensing or attribution requirements while keeping every muscle proxy independently addressable.
+The visible body is the `anatomy.glb` atlas prepared by Johan Bellander for [BodyExplorer](https://github.com/JohanBellander/BodyExplorer). It contains 467 separately named muscle, tendon, and connective-tissue meshes derived from:
 
-The model is a deliberately simplified, non-graphic adult female anatomical abstraction. It is not intended as a detailed anatomical reference.
+- **BodyParts3D**, Database Center for Life Science — 401 MRI-derived meshes, licensed [CC BY-SA 2.1 Japan](https://creativecommons.org/licenses/by-sa/2.1/jp/).
+- **Z-Anatomy**, Gauthier Kervyn and contributors — 66 supplementary meshes, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
-### Sources investigated for the anatomy upgrade
+BodyExplorer's source code is MIT licensed; its anatomical meshes retain the licenses above. Redistribution is permitted with attribution and ShareAlike. The local asset is stored at `public/models/bodyparts3d-anatomy.glb`, with its source mapping beside it.
 
-- **Z-Anatomy**, Lluís Vinent Juanico and contributors — [project repository](https://github.com/LluisV/Z-Anatomy), CC BY-SA 4.0. Redistributable, but the available source model is a large Blender/FBX anatomical dataset without the lightweight female humanoid skinning needed by this browser IK system.
-- **Open3DMan / AnatomyTOOL**, Dutch and Belgian university anatomy departments — [project page](https://anatomytool.org/open3dmodel), CC BY-SA. At the time of review the current model is male and the published anatomical regions are still being completed.
-- **Kabe-Tech Female Anatomy Écorché** — [model information](https://kabe-tech.com/anatomy/en), CC BY-SA 2.1 JP. A strong 673-mesh female anatomical reference, but it is distributed as a reference model and does not provide the optimized skinned runtime rig required here.
+### Processing and integration
 
-None of these assets is copied or redistributed in this repository. They informed the source review only.
-
-### Processing and runtime geometry
-
-The upgraded body uses original low-poly ring surfaces generated in `components/anatomy/AnatomicalGeometry.tsx`. Fusiform, tapered, sheet, fan, and joint profiles replace stock capsule/sphere muscle placeholders. Limb muscle groups inherit the transforms of the solved upper/lower limb segments; torso muscles use dedicated anatomical sheet profiles; the rectus abdominis is segmented. Stable logical mappings are isolated in `boneMap.ts` and `muscleMeshMap.ts` so a future fully skinned GLB can replace the geometry without changing simulator state or biomechanics code.
+BodyExplorer decimated source structures to roughly 4,000 faces each and spatially aligned the BodyParts3D and Z-Anatomy datasets. Kinetic Atlas preserves the 467 named meshes, remaps the medical dataset's axes and millimeter scale into the Three.js scene, recomputes normals and bounds, classifies structures into stable logical muscle groups, and attaches anatomical regions to a rigid segmented IK hierarchy. Materials remain independently controllable for activation and selection.
 
 ## Biomechanics approximation
 
@@ -35,7 +30,8 @@ Dumbbells emit generic `ExternalLoad` records: body part, force vector, applicat
 
 ## Architecture
 
-- `components/AnatomyViewer.tsx` — R3F scene, constrained two-segment IK, mannequin, muscle overlays, handles, camera
+- `components/AnatomyViewer.tsx` — R3F scene, constrained two-segment IK, handles, loads, camera
+- `components/anatomy/RealAnatomyModel.tsx` — GLB normalization, anatomical mapping, segmented attachment, activation materials
 - `components/Simulator.tsx` — application shell, panels, playback, timeline
 - `lib/biomechanics.ts` — loads, torque and activation estimates
 - `lib/presets.ts` — data-driven poses and exercise presets
@@ -44,4 +40,4 @@ Dumbbells emit generic `ExternalLoad` records: body part, force vector, applicat
 
 ## Limitations
 
-The procedural model uses proxy muscle volumes and planar two-bone IK, not a clinical skeleton. Collision, tendon mechanics, fatigue, equipment contact, and research-grade inverse dynamics are intentionally out of scope. Bench press is approximated standing to preserve the same manipulation system without a bench constraint solver.
+The anatomical meshes are real atlas data, but their movement uses rigid segment attachment rather than clinical multi-bone skinning. Deformation near joints is therefore approximate. Collision, tendon mechanics, fatigue, equipment contact, and research-grade inverse dynamics are intentionally out of scope. Bench press is approximated standing to preserve the same manipulation system without a bench constraint solver.

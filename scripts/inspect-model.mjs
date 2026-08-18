@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+globalThis.ProgressEvent ??= class ProgressEvent {};
+const data=fs.readFileSync(process.argv[2]);
+const array=data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength);
+const gltf=await new Promise((resolve,reject)=>new GLTFLoader().parse(array,'',resolve,reject));
+gltf.scene.updateMatrixWorld(true);
+const whole=new THREE.Box3().setFromObject(gltf.scene);
+const samples=[];
+gltf.scene.traverse(o=>{if(o.isMesh&&samples.length<12){const b=new THREE.Box3().setFromObject(o),c=b.getCenter(new THREE.Vector3());samples.push({name:o.name,center:c.toArray(),size:b.getSize(new THREE.Vector3()).toArray(),position:o.position.toArray(),scale:o.scale.toArray()})}});
+console.log(JSON.stringify({whole:{min:whole.min.toArray(),max:whole.max.toArray(),size:whole.getSize(new THREE.Vector3()).toArray(),center:whole.getCenter(new THREE.Vector3()).toArray()},samples},null,2));
