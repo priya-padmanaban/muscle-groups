@@ -12,7 +12,7 @@ function formGeometry(kind: FormKind, radial = 16, rows = 12) {
     if(kind==='fusiform'){width=.28+.72*Math.pow(Math.sin(Math.PI*t),.65);depth=.38+.62*Math.sin(Math.PI*t)}
     if(kind==='tapered'){width=.22+.9*Math.pow(1-t,.58);depth=.28+.72*Math.pow(1-t,.72)}
     if(kind==='sheet'){width=.72+.28*Math.sin(Math.PI*t);depth=.22+.12*Math.sin(Math.PI*t)}
-    if(kind==='fan'){width=.2+.95*t;depth=.2+.35*t}
+    if(kind==='fan'){width=.22+.78*Math.pow(Math.sin(Math.PI*t),.55);depth=.3+.7*Math.sin(Math.PI*t)}
     if(kind==='joint'){width=.72+.28*Math.sin(Math.PI*t);depth=width}
     for(let x=0;x<radial;x++){const a=x/radial*Math.PI*2;positions.push(Math.cos(a)*width,yy,Math.sin(a)*depth)}
   }
